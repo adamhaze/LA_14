@@ -125,3 +125,74 @@ percentile_data <- resultMe/1000
 percentile_data
 ```
 
+
+###Richard's Findings
+
+####Does the change in milk production distrbution affected by region? Likewise, is region not important?
+```{r}
+meanMountain <- milk %>%
+  filter(region == 'Mountain')%>%
+  summarise(meanDifference = mean(milk_million))
+
+meanCornBelt <- milk %>%
+  filter(region == 'Corn Belt')%>%
+  summarise(meanDifference = mean(milk_million))
+
+Milktest <- milk %>%
+  group_by(region)%>%
+  filter(region == "Mountain" || region == "Corn Belt")
+
+perm_mean <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMean <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+    
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMean <- mean(vector1)
+    secondMean <- mean(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    meanDifference <- firstMean - secondMean
+    
+    outputMean[i] <- meanDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMean)
+}
+
+MilkDifference <- meanMountain - meanCornBelt
+MilkDifference
+
+results <- perm_mean(1000, Milktest$milk_million, 200)
+results <- abs(results)
+
+ggplot()+
+  geom_histogram(aes(x=result),fill = "blue")+
+  geom_vline(xintercept = 115)+
+  labs(title = "Distribution of Difference in Means from Random Groupings of regions in Mountain states and Corn belt states")+
+  xlab("Difference")
+
+resultMilkRichard <- sum(result<115)
+percentiles_data <- resultMilkRichard/1000
+
+
+
+percentiles_data
+
+```

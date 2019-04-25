@@ -16,7 +16,9 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 ####Conclusion:
 
 ####What We Used:
-We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each year, based on the entire dataset.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed these, it showed that our predictions underestimated the actual average milk production most years.
+We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each region per year.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed them.
+
+####Compared to Lab 5:
 
 
 ```{r}
@@ -34,14 +36,14 @@ ggplot(data=milk2)+
   geom_point(mapping = aes(x = year, y = mean, color = region))+
   labs(title = "Mean Milk Produced By Region")
 
-mod <- lm(mean~year, data = milk2)
+mod <- lm(mean~year*region, data = milk2)
 grid <- milk2 %>%
   data_grid(year)
 grid <- grid %>%
   add_predictions(mod)
 
-ggplot(milk2, aes(year)) +
-  geom_point(aes(y = mean, color = region)) +
+ggplot(milk2, aes(year, color = region)) +
+  geom_point(aes(y = mean)) +
   geom_line(aes(y = pred), data = grid, size = 1)+
   labs(title = "Same Graph, but with the Linear Model for Predictions of Milk Produced in black")
 

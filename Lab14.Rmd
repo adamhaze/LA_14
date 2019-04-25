@@ -45,7 +45,7 @@ grid <- grid %>%
 ggplot(milk2, aes(year, color = region)) +
   geom_point(aes(y = mean)) +
   geom_line(aes(y = pred), data = grid, size = 1)+
-  labs(title = "Same Graph, but with the Linear Model for Predictions of Milk Produced in black")
+  labs(title = "Same Graph, but with the Linear Model for Predictions of Milk Produced")
 
 resids <- milk2 %>%
   add_residuals(mod)
@@ -71,11 +71,8 @@ median2017 <- milk %>%
   summarise(medianDifference = median(milk_million))
 
 
-
 testGroup <- milk %>%
   filter(year == 1970 || year == 2017)
-
-
 
 perm_median <- function(perms = 1000, values, n1)
 {
@@ -125,9 +122,6 @@ ggplot()+
 resultMe <- sum(result<126)
 percentile_data <- resultMe/1000
 
-
-
 percentile_data
-
 ```
 

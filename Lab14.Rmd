@@ -1,0 +1,131 @@
+---
+title: "Lab 14 (ReDo of Lab 5)"
+author: "Adam Hayes, Erin Omyer, Richard Park, Jasmine Sanchez"
+date: "4/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+###How has milk production changed over the years? By region?
+
+####Importance:
+
+####Conclusion:
+
+####What We Used:
+We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each year, based on the entire dataset.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed these, it showed that our predictions underestimated the actual average milk production most years.
+
+
+```{r}
+library(tidyverse)
+library(modelr)
+options(na.action = na.warn)
+
+milk <- read.csv('state_milk_production.csv') %>%
+  mutate(milk_million = milk_produced/1000000)
+milk2 <- milk %>%
+  group_by(region,year)%>%
+  mutate(mean = mean(milk_million))
+
+ggplot(data=milk2)+
+  geom_point(mapping = aes(x = year, y = mean, color = region))+
+  labs(title = "Mean Milk Produced By Region")
+
+mod <- lm(mean~year, data = milk2)
+grid <- milk2 %>%
+  data_grid(year)
+grid <- grid %>%
+  add_predictions(mod)
+
+ggplot(milk2, aes(year)) +
+  geom_point(aes(y = mean, color = region)) +
+  geom_line(aes(y = pred), data = grid, size = 1)+
+  labs(title = "Same Graph, but with the Linear Model for Predictions of Milk Produced in black")
+
+resids <- milk2 %>%
+  add_residuals(mod)
+
+ggplot(resids, aes(resid)) + 
+  geom_freqpoly(binwidth = 100)+
+  labs(title = "Graph of Residuals")
+
+quantile(milk$milk_million)
+```
+
+
+###Adam's findings:
+
+####Do changes in the distribution of milk produced in the US follow the year? or is the year unimportant?
+```{r}
+median1970 <- milk %>%
+  filter(year == 1970)%>%
+  summarise(medianDifference = median(milk_million))
+
+median2017 <- milk %>%
+  filter(year == 2017)%>%
+  summarise(medianDifference = median(milk_million))
+
+
+
+testGroup <- milk %>%
+  filter(year == 1970 || year == 2017)
+
+
+
+perm_median <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMedian <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMedian <- median(vector1)
+    secondMedian <- median(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    medianDifference <- firstMedian - secondMedian
+    
+    outputMedian[i] <- medianDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMedian)
+}
+
+realDifference <- median2017 - median1970
+realDifference
+
+result <- perm_median(1000, testGroup$milk_million, 200)
+result <- abs(result)
+ggplot()+
+  geom_histogram(aes(x=result),fill = "red")+
+  geom_vline(xintercept = 126)+
+  labs(title = "Distribution of Difference in Means from Random Groupings of years 1970 and 2017")+
+  xlab("difference")
+
+resultMe <- sum(result<126)
+percentile_data <- resultMe/1000
+
+
+
+percentile_data
+
+```
+

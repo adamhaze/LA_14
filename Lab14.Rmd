@@ -58,7 +58,11 @@ ggplot(resids, aes(resid)) +
   geom_freqpoly(binwidth = 100)+
   labs(title = "Graph of Residuals")
 
-quantile(milk$milk_million)
+quantile1 <- quantile(milk$milk_million)
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(quantile1, caption = "The percentiles of Milk Production")
 ```
 
 
@@ -113,7 +117,6 @@ perm_median <- function(perms = 1000, values, n1)
 }
 
 realDifference <- median2017 - median1970
-realDifference
 
 result <- perm_median(1000, testGroup$milk_million, 200)
 result <- abs(result)
@@ -125,10 +128,15 @@ ggplot()+
 
 resultMe <- sum(result<126)
 percentile_data <- resultMe/1000
-
-percentile_data
 ```
-
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(realDifference, caption = "The percentiles of difference in means in 1970 and 2017")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentile_data, caption = "The percentiles of the distribution of Difference in Means from Random Groupings of years 1970 and 2017")
+```
 
 ###Richard's Findings
 
@@ -181,7 +189,6 @@ perm_mean <- function(perms = 1000, values, n1)
 }
 
 MilkDifference <- meanMountain - meanCornBelt
-MilkDifference
 
 results <- perm_mean(1000, Milktest$milk_million, 200)
 results <- abs(results)
@@ -196,7 +203,94 @@ resultMilkRichard <- sum(result<115)
 percentiles_data <- resultMilkRichard/1000
 
 
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(MilkDifference, caption = "The percentiles of difference in means in regions")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentiles_data, caption = "The percentiles of difference in means for random groupings of regions in Mountain and Corn belt")
+```
 
-percentiles_data
+###Erin's Findings
+
+####Does the year of milk production have an impact on the specific region? Is the year important?
+```{r}
+mean1970_pacific <- milk %>%
+  filter(year == 1970,region == 'Pacific')%>%
+  summarise(meanDifference = mean(milk_million))
+
+mean2017_pacific <- milk %>%
+  filter(year == 2017,region == 'Pacific')%>%
+  summarise(meanDifference = mean(milk_million))
+
+Milktest2 <- milk %>%
+  group_by(region)%>%
+  filter(region == 'Pacific')
+
+perm_mean <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMean <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+    
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMean <- mean(vector1)
+    secondMean <- mean(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    meanDifference <- firstMean - secondMean
+    
+    outputMean[i] <- meanDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMean)
+}
+
+MilkDifference_pacific <- mean2017_pacific - mean1970_pacific
+
+results <- perm_mean(1000, Milktest2$milk_million, 100)
+resultss <- abs(results)
+
+ggplot()+
+  geom_histogram(aes(x=resultss),fill = "pink")+
+  geom_vline(xintercept = 500)+
+  labs(title = "Distribution of Difference in Means for the region 'Pacific' from year 1970 to 2017s")+
+  xlab("Difference")
+
+resultMilkErin <- sum(resultss<500)
+percentiles_data1 <- resultMilkErin/1000
 
 ```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(MilkDifference_pacific, caption = "The percentiles of difference in the Pacific")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentiles_data1, caption = "The percentiles of difference in means")
+```
+
+####Comments
+
+As displayed above, we tested the milk production differences between the year 1970 and 2017 in the same region. In the beginning of milk production, the difference in means was high because it was just beginning. But, as the years went on, the amount of production reached an equilibrium. We were able to visually see this because of permutation test that took random groups of data for the sample. After running the permutation test, I calculated the percentile from the mean of the section, and discovered the data was in the 39th percentile. The majority of the data wasn't accounted for, this means that the year is not important in the milk production industry in a specific region. The year didn't make a big enough impact on the region to vary their milk production vastly.
+
+###Who did what?
+
+Through redoing the lab, each person took a better approach to answering the questions about milk production in lab 5. Erin was able to take the data and discover that milk production isn't impacted by the year when focusing on one specific region of the United States. By doing this, she used the mean to find the mean difference between the years 1970 and 2017, then applied the permutation test. From this, she created a histogram to visually show the data skewed-right. Laslty, calculated the percentile of data under the mean in the histogram and discovered a low percentage of the data is impacted by the year for milk production.

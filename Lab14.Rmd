@@ -15,7 +15,7 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 These statistics are important because it can give milk farmers in different regions of the US important information on how much milk they are producing. An increase or decrease in production can be the reason why their profits in a given year dramatically increase or decrease. The statistics can be used to give farmers information on how their competition is doing in terms of milk production, especially in neighboring states. 
 
 ####Conclusion: 
-
+From the graphs hown below, we can deduce that the only regions in which there was any significant change in milk production over time was the Pacific and Lake State's regions. These are the two regions that have the most significant rises and drops within milk productions and with that, there is a consistency pattern between all other regions other than the two exceptions, Southern Plains and Mountain regions where there have been slight increases over time. Overall, there is no clear indicator of how the increase or decrease in milk production in a specific region over time becuase the regions with big distinctions are not exactly neighboring one another, the results are somewhat random and inconsistent between regional patterns. 
 
 ####What We Used:
 We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each region per year.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed them.

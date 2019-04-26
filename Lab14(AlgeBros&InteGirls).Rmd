@@ -300,7 +300,7 @@ As displayed above, we tested the milk production differences between the year 1
 #### What is the relationship between variance values of the amount of milk produced and the two larger most regions from which it is produced in 1987?
 
 ```{r}
-milk_reg <- milk%>%
+milk_reg <- milk %>%
   filter(year == '1987', region == 'Pacific')%>%
   summarise(funct = mean(milk_million))
 
@@ -319,6 +319,7 @@ milk_sd2 <- milk%>%
 var1 <- milk_sd/milk_reg
 var2 <- milk_sd2/milk_reg2
 
+milk_variance_Diff <- var2 - var1
 
 reg_tst <- milk%>%
    group_by(region, year)%>%
@@ -394,10 +395,16 @@ ggplot(data = reg_tst) +
 
 my_result <- sum(var_result < 0.86787)
 
-percentile_data <- my_result/1000
+percentile_data3 <- my_result/1000
 
-
-
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(milk_variance_Diff, caption = "The percentiles of difference in Pacific and Lake States")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentile_data3, caption = "The percentiles of difference in means")
 ```
 
 ####Comments: 

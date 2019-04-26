@@ -11,14 +11,18 @@ knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
 
 ###How has milk production changed over the years? By region?
 
-####Importance:
+####Importance: 
+These statistics are important because it can give milk farmers in different regions of the US important information on how much milk they are producing. An increase or decrease in production can be the reason why their profits in a given year dramatically increase or decrease. The statistics can be used to give farmers information on how their competition is doing in terms of milk production, especially in neighboring states. 
 
-####Conclusion:
+####Conclusion: 
+
 
 ####What We Used:
 We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each region per year.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed them.
 
 ####Compared to Lab 5:
+Our new answer shows that the Corn Belt states are producing more milk than the mountain states which are usually producing less than average yearly. This gives us more insight compared to our old answer because we were limited by only analyzing the statistics by state and not by region. However, the results from both labs do agree. Lab 14 just used more advanced techniques to generalize the results into regions. 
+
 
 
 ```{r}

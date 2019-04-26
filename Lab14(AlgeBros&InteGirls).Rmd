@@ -1,0 +1,409 @@
+---
+title: "Lab 14 (ReDo of Lab 5)"
+author: "Adam Hayes, Erin Omyer, Richard Park, Jasmine Sanchez"
+date: "4/17/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE, }
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+###How has milk production changed over the years? By region?
+
+####Importance: 
+These statistics are important because it can give milk farmers in different regions of the US important information on how much milk they are producing. An increase or decrease in production can be the reason why their profits in a given year dramatically increase or decrease. The statistics can be used to give farmers information on how their competition is doing in terms of milk production, especially in neighboring states. 
+
+####Conclusion: 
+From the graphs hown below, we can deduce that the only regions in which there was any significant change in milk production over time was the Pacific and Lake State's regions. These are the two regions that have the most significant rises and drops within milk productions and with that, there is a consistency pattern between all other regions other than the two exceptions, Southern Plains and Mountain regions where there have been slight increases over time. Overall, there is no clear indicator of how the increase or decrease in milk production in a specific region over time becuase the regions with big distinctions are not exactly neighboring one another, the results are somewhat random and inconsistent between regional patterns. 
+
+####What We Used:
+We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each region per year.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed them.
+
+####Compared to Lab 5:
+In this lab, rather than just looking at milk production for specific states or years, we were able to use our new tools and skills to investigate the distribution of milk production as a whole over all years, by region. Our new answer shows that the Corn Belt states are producing more milk than the mountain states which are usually producing less than average yearly.  It also shows whether or not year labels effect the overall distribution of milk production. This gives us more insight compared to our old answer because we were limited by only analyzing the statistics by state and year rather than looking at the entire distribution. 
+
+
+
+```{r}
+library(tidyverse)
+library(modelr)
+options(na.action = na.warn)
+
+milk <- read.csv('state_milk_production.csv') %>%
+  mutate(milk_million = milk_produced/1000000)
+milk2 <- milk %>%
+  group_by(region,year)%>%
+  mutate(mean = mean(milk_million))
+
+ggplot(data=milk2)+
+  geom_point(mapping = aes(x = year, y = mean, color = region))+
+  labs(title = "Mean Milk Produced By Region")
+
+mod <- lm(mean~year*region, data = milk2)
+grid <- milk2 %>%
+  data_grid(year)
+grid <- grid %>%
+  add_predictions(mod)
+
+ggplot(milk2, aes(year, color = region)) +
+  geom_point(aes(y = mean)) +
+  geom_line(aes(y = pred), data = grid, size = 1)+
+  labs(title = "Same Graph, but with the Linear Model for Predictions of Milk Produced")
+
+resids <- milk2 %>%
+  add_residuals(mod)
+
+ggplot(resids, aes(resid)) + 
+  geom_freqpoly(binwidth = 100)+
+  labs(title = "Graph of Residuals")
+
+quantile1 <- quantile(milk$milk_million)
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(quantile1, caption = "The percentiles of Milk Production")
+```
+
+
+###Adam's findings:
+
+####Do changes in the distribution of milk produced in the US follow the year? or is the year unimportant?
+```{r}
+median1970 <- milk %>%
+  filter(year == 1970)%>%
+  summarise(medianDifference = median(milk_million))
+
+median2017 <- milk %>%
+  filter(year == 2017)%>%
+  summarise(medianDifference = median(milk_million))
+
+
+testGroup <- milk %>%
+  filter(year == 1970 || year == 2017)
+
+perm_median <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMedian <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMedian <- median(vector1)
+    secondMedian <- median(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    medianDifference <- firstMedian - secondMedian
+    
+    outputMedian[i] <- medianDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMedian)
+}
+
+realDifference <- median2017 - median1970
+
+result <- perm_median(1000, testGroup$milk_million, 200)
+result <- abs(result)
+ggplot()+
+  geom_histogram(aes(x=result),fill = "red")+
+  geom_vline(xintercept = 126)+
+  labs(title = "Distribution of Difference in Means from Random Groupings of years 1970 and 2017")+
+  xlab("difference")
+
+resultMe <- sum(result<126)
+percentile_data <- resultMe/1000
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(realDifference, caption = "The Actual difference in median milk production between 1970 and 2017")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentile_data, caption = "The percentiles of the distribution of Difference in Medians from Random Groupings of years 1970 and 2017")
+```
+
+####Comments
+For this subquestion, I investigated the distribution of milk production in 1970 and 2017(first and last years of the data) by calculating the median milk produced for each, and their difference.  I then sent a modified dataset, with just those 2 years, through a permutation test, and calculated the difference in medians between two random groupings of the dataset with no year labels at each permutation.  After graphing the results of the test, and comparing it to the actual difference in the medians before the test, I concluded that the year of production, doesn't have a huge effect on the distribution of of milk production.   From the graph, it seems as if most of the random groupings in the permutation test had lower difference in median milk production, than the actual difference between the two years.  However, because the results tended to be around the 60th percentile, it shows that the difference in medians from the permutation groups, were actually pretty well spread above and below the actual difference.  This shows that even though the two years had a significant difference in median milk production, because the permutation test showed a pretty even distribution of differences around the actual difference it can be inferred that the year labels are fairly insignificant and the distribution of milk production isn't significantly different between 1970 and 2017.
+
+
+
+###Richard's Findings
+
+####Does the change in milk production distrbution affected by region? Likewise, is region not important?
+```{r}
+meanMountain <- milk %>%
+  filter(region == 'Mountain')%>%
+  summarise(meanDifference = mean(milk_million))
+
+meanCornBelt <- milk %>%
+  filter(region == 'Corn Belt')%>%
+  summarise(meanDifference = mean(milk_million))
+
+Milktest <- milk %>%
+  group_by(region)%>%
+  filter(region == "Mountain" || region == "Corn Belt")
+
+perm_mean <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMean <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+    
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMean <- mean(vector1)
+    secondMean <- mean(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    meanDifference <- firstMean - secondMean
+    
+    outputMean[i] <- meanDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMean)
+}
+
+MilkDifference <- meanMountain - meanCornBelt
+
+results <- perm_mean(1000, Milktest$milk_million, 200)
+results <- abs(results)
+
+ggplot()+
+  geom_histogram(aes(x=result),fill = "blue")+
+  geom_vline(xintercept = 115)+
+  labs(title = "Distribution of Difference in Means from Random Groupings of regions in Mountain states and Corn belt states")+
+  xlab("Difference")
+
+resultMilkRichard <- sum(result<115)
+percentiles_data <- resultMilkRichard/1000
+
+
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(MilkDifference, caption = "The percentiles of difference in means in regions")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentiles_data, caption = "The percentiles of difference in means for random groupings of regions in Mountain and Corn belt")
+```
+
+###Erin's Findings
+
+####Does the year of milk production have an impact on the specific region? Is the year important?
+```{r}
+mean1970_pacific <- milk %>%
+  filter(year == 1970,region == 'Pacific')%>%
+  summarise(meanDifference = mean(milk_million))
+
+mean2017_pacific <- milk %>%
+  filter(year == 2017,region == 'Pacific')%>%
+  summarise(meanDifference = mean(milk_million))
+
+Milktest2 <- milk %>%
+  group_by(region)%>%
+  filter(region == 'Pacific')
+
+perm_mean <- function(perms = 1000, values, n1)
+{
+  # Create vector of zeroes of length "perms" to store
+  # permuted mean differnces
+  outputMean <- c()
+  
+  # Loop throught number of permutations
+  for (i in c(1:perms))
+  {
+    # Randomly separate vector "values" into disjoint 
+    # groups of size "n1" and "length(values) - n1" respectively
+    
+    vector1 <- sample(values, n1)
+    n2 <- length(values)-n1
+    vector2 <- sample(values, n2)
+    
+    # Compute the sample means for the two groups from 
+    # step 2
+    
+    firstMean <- mean(vector1)
+    secondMean <- mean(vector2)
+    
+    # Compute the difference in sample means, store the
+    # value in the vector from step 1
+    
+    meanDifference <- firstMean - secondMean
+    
+    outputMean[i] <- meanDifference
+  }
+  # Return new updated vector, created in step 1
+  
+  return(outputMean)
+}
+
+MilkDifference_pacific <- mean2017_pacific - mean1970_pacific
+
+results <- perm_mean(1000, Milktest2$milk_million, 100)
+resultss <- abs(results)
+
+ggplot()+
+  geom_histogram(aes(x=resultss),fill = "pink")+
+  geom_vline(xintercept = 500)+
+  labs(title = "Distribution of Difference in Means for the region 'Pacific' from year 1970 to 2017s")+
+  xlab("Difference")
+
+resultMilkErin <- sum(resultss<500)
+percentiles_data1 <- resultMilkErin/1000
+
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(MilkDifference_pacific, caption = "The percentiles of difference in the Pacific")
+```
+```{r echo = FALSE, results = 'asis'}
+library(knitr)
+kable(percentiles_data1, caption = "The percentiles of difference in means")
+```
+
+####Comments
+
+As displayed above, we tested the milk production differences between the year 1970 and 2017 in the same region. In the beginning of milk production, the difference in means was high because it was just beginning. But, as the years went on, the amount of production reached an equilibrium. We were able to visually see this because of permutation test that took random groups of data for the sample. After running the permutation test, I calculated the percentile from the mean of the section, and discovered the data was in the 39th percentile. The majority of the data wasn't accounted for, this means that the year is not important in the milk production industry in a specific region. The year didn't make a big enough impact on the region to vary their milk production vastly.
+
+###Jasmine's Findings:
+#### What is the relationship between variance values of the amount of milk produced and the two larger most regions from which it is produced in 1987?
+
+```{r}
+milk_reg <- milk%>%
+  filter(year == '1987', region == 'Pacific')%>%
+  summarise(funct = mean(milk_million))
+
+milk_reg2 <- milk%>%
+  filter(year == '1987', region == 'Lake States')%>%
+  summarise(funct1 = mean(milk_million))
+
+milk_sd <- milk%>%
+  filter(year == '1987', region == 'Pacific')%>%
+  summarise(fun = sd(milk_million))
+
+milk_sd2 <- milk%>%
+  filter(year == '1987', region == 'Lake States')%>%
+  summarise(fun1 = sd(milk_million))
+
+var1 <- milk_sd/milk_reg
+var2 <- milk_sd2/milk_reg2
+
+
+reg_tst <- milk%>%
+   group_by(region, year)%>%
+   filter(region == "Pacific" | region == "Lake States",  year == '1987')
+
+
+
+
+var_perm <- function(perms = 1000, values, n1)
+  {
+ 
+   # Create vector of zeroes of length "perms" to store
+ 
+   # permuted mean differnces
+ 
+   outputVariant <- c()
+ 
+   
+ 
+   # Loop throught number of permutations
+ 
+   for (i in c(1:perms))
+ 
+   {
+ 
+     # Randomly separate vector "values" into disjoint 
+ 
+     # groups of size "n1" and "length(values) - n1" respectively
+ 
+     
+ 
+     vector1 <- sample(values, n1)
+ 
+     n2 <- length(values)-n1
+ 
+     vector2 <- sample(values, n2)
+
+     # Compute the sample means for the two groups from 
+ 
+     # step 2
+
+     fst_variant <- (sd(vector1)/mean(vector1))
+ 
+     scnd_variant <- (sd(vector1)/mean(vector1))
+  
+     # Compute the difference in sample means, store the
+ 
+     # value in the vector from step 1
+
+     var_difference <- fst_variant - scnd_variant
+ 
+     outputVariant[i] <- var_difference
+ 
+   }
+ 
+   # Return new updated vector, created in step 1
+
+   return(outputVariant)
+ }
+
+var_result <- var_perm(1000, testGroup$milk_million, 200)
+var_result <- abs(var_result)
+ 
+reg_tst2 <- reg_tst%>%
+  mutate(output = 'var_result', difference = 'difference')
+ 
+ggplot(data = reg_tst) +    
+  geom_histogram(aes(x = milk_million, fill = region)) + 
+  geom_vline(xintercept = 0.86787, colour = "green")+
+  labs(title = "Distribution of Difference in the variant values from Random Groupings from 
+       1987 in the Pacific and Lake States Regions")
+
+
+my_result <- sum(var_result < 0.86787)
+
+percentile_data <- my_result/1000
+
+
+
+```
+
+####Comments: 
+For this lab, I wanted to compare the results of variant values from the milk produced by the Pacific and Lake State Regions. A variant value is the squared standard deviation of a value over the mean. I found that the difference between the two values that I found from the year 1987 was next to zero. This supports our initial findings from the graphs in the beginning of the lab. They showed us that these two regions were the two with the most dramatic changes in milk production. The graph above, shows the difference between the two varaint values found in my sample and show that the majority of their change in milk production has been consistent with one another. 
+
+
+###Who did what?
+
+Through redoing the lab, each person took a better approach to answering the questions about milk production in lab 5. Erin was able to take the data and discover that milk production isn't impacted by the year when focusing on one specific region of the United States. By doing this, she used the mean to find the mean difference between the years 1970 and 2017, then applied the permutation test. From this, she created a histogram to visually show the data skewed-right. Laslty, calculated the percentile of data under the mean in the histogram and discovered a low percentage of the data is impacted by the year for milk production.  Adam added variables to the dataset, and created a model of the distribution of milk production by region over all years, and added predictions and residuals, he then wrote what new tools he and his team used for this lab in the team section.  In his individual section he investigated the median milk prodcutions for the first and last years of the dataset, and performed permutation tests on random groupings of those two years with mixed year labels. Jasmine also added variables to the dataset and created a permutation to sample the difference in varaiant values from the milk production means in the Pacific and Lake State Regions. She wanted to know whether or not the changes in region have big effects on the amounts of milk produced each year, she decided to focus in on one year where she saw the biggest change, and contued to conclude that the region does not in any major capacity affect the milk production in a single year. 

@@ -21,7 +21,7 @@ From the graphs hown below, we can deduce that the only regions in which there w
 We took our Lab 5, about state milk production, and updated it to investigate how milk production has changed by region, over the years.  In our graphs we tidied the data, and added new variables.  We then created a model that added predictions for average milk production each region per year.  We graphed that and compared it to the graph of each individual region's average milk production per year.  We then added residuals, and when we graphed them.
 
 ####Compared to Lab 5:
-Our new answer shows that the Corn Belt states are producing more milk than the mountain states which are usually producing less than average yearly. This gives us more insight compared to our old answer because we were limited by only analyzing the statistics by state and not by region. However, the results from both labs do agree. Lab 14 just used more advanced techniques to generalize the results into regions. 
+In this lab, rather than just looking at milk production for specific states or years, we were able to use our new tools and skills to investigate the distribution of milk production as a whole over all years, by region. Our new answer shows that the Corn Belt states are producing more milk than the mountain states which are usually producing less than average yearly.  It also shows whether or not year labels effect the overall distribution of milk production. This gives us more insight compared to our old answer because we were limited by only analyzing the statistics by state and year rather than looking at the entire distribution. 
 
 
 
@@ -131,12 +131,17 @@ percentile_data <- resultMe/1000
 ```
 ```{r echo = FALSE, results = 'asis'}
 library(knitr)
-kable(realDifference, caption = "The percentiles of difference in means in 1970 and 2017")
+kable(realDifference, caption = "The Actual difference in median milk production between 1970 and 2017")
 ```
 ```{r echo = FALSE, results = 'asis'}
 library(knitr)
-kable(percentile_data, caption = "The percentiles of the distribution of Difference in Means from Random Groupings of years 1970 and 2017")
+kable(percentile_data, caption = "The percentiles of the distribution of Difference in Medians from Random Groupings of years 1970 and 2017")
 ```
+
+####Comments
+For this subquestion, I investigated the distribution of milk production in 1970 and 2017(first and last years of the data) by calculating the median milk produced for each, and their difference.  I then sent a modified dataset, with just those 2 years, through a permutation test, and calculated the difference in medians between two random groupings of the dataset with no year labels at each permutation.  After graphing the results of the test, and comparing it to the actual difference in the medians before the test, I concluded that the year of production, doesn't have a huge effect on the distribution of of milk production.   From the graph, it seems as if most of the random groupings in the permutation test had lower difference in median milk production, than the actual difference between the two years.  However, because the results tended to be around the 60th percentile, it shows that the difference in medians from the permutation groups, were actually pretty well spread above and below the actual difference.  This shows that even though the two years had a significant difference in median milk production, because the permutation test showed a pretty even distribution of differences around the actual difference it can be inferred that the year labels are fairly insignificant and the distribution of milk production isn't significantly different between 1970 and 2017.
+
+
 
 ###Richard's Findings
 
@@ -293,4 +298,4 @@ As displayed above, we tested the milk production differences between the year 1
 
 ###Who did what?
 
-Through redoing the lab, each person took a better approach to answering the questions about milk production in lab 5. Erin was able to take the data and discover that milk production isn't impacted by the year when focusing on one specific region of the United States. By doing this, she used the mean to find the mean difference between the years 1970 and 2017, then applied the permutation test. From this, she created a histogram to visually show the data skewed-right. Laslty, calculated the percentile of data under the mean in the histogram and discovered a low percentage of the data is impacted by the year for milk production.
+Through redoing the lab, each person took a better approach to answering the questions about milk production in lab 5. Erin was able to take the data and discover that milk production isn't impacted by the year when focusing on one specific region of the United States. By doing this, she used the mean to find the mean difference between the years 1970 and 2017, then applied the permutation test. From this, she created a histogram to visually show the data skewed-right. Laslty, calculated the percentile of data under the mean in the histogram and discovered a low percentage of the data is impacted by the year for milk production.  Adam added variables to the dataset, and created a model of the distribution of milk production by region over all years, and added predictions and residuals, he then wrote what new tools he and his team used for this lab in the team section.  In his individual section he investigated the median milk prodcutions for the first and last years of the dataset, and performed permutation tests on random groupings of those two years with mixed year labels.
